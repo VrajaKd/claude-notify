@@ -1,0 +1,64 @@
+{
+  "Stop": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "[ -z \"$CLAUDE_NONINTERACTIVE\" ] && setsid wscript.exe 'C:\\Temp\\claude-launcher.vbs' 'C:\\Temp\\claude-stop-hook.ps1' \"${CLAUDE_SESSION:-Claude}\" </dev/null >/dev/null 2>&1 &"
+        }
+      ]
+    }
+  ],
+  "UserPromptSubmit": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "setsid wscript.exe 'C:\\Temp\\claude-launcher.vbs' 'C:\\Temp\\claude-dismiss.ps1' \"${CLAUDE_SESSION:-Claude}\" </dev/null >/dev/null 2>&1 &"
+        }
+      ]
+    }
+  ],
+  "SessionEnd": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "setsid wscript.exe 'C:\\Temp\\claude-launcher.vbs' 'C:\\Temp\\claude-dismiss.ps1' \"${CLAUDE_SESSION:-Claude}\" </dev/null >/dev/null 2>&1 &"
+        }
+      ]
+    }
+  ],
+  "Notification": [
+    {
+      "matcher": "elicitation_dialog",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "[ -z \"$CLAUDE_NONINTERACTIVE\" ] && setsid wscript.exe 'C:\\Temp\\claude-launcher.vbs' 'C:\\Temp\\claude-stop-hook.ps1' \"${CLAUDE_SESSION:-Claude}\" </dev/null >/dev/null 2>&1 &"
+        }
+      ]
+    }
+  ],
+  "PermissionRequest": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "[ -z \"$CLAUDE_NONINTERACTIVE\" ] && setsid wscript.exe 'C:\\Temp\\claude-launcher.vbs' 'C:\\Temp\\claude-stop-hook.ps1' \"${CLAUDE_SESSION:-Claude}\" </dev/null >/dev/null 2>&1 &"
+        }
+      ]
+    }
+  ],
+  "PostToolUse": [
+    {
+      "matcher": "AskUserQuestion",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "setsid wscript.exe 'C:\\Temp\\claude-launcher.vbs' 'C:\\Temp\\claude-dismiss.ps1' \"${CLAUDE_SESSION:-Claude}\" </dev/null >/dev/null 2>&1 &"
+        }
+      ]
+    }
+  ]
+}

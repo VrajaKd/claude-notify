@@ -38,83 +38,18 @@ echo "  Copied 4 files."
 # --- Step 2: Merge hooks into settings.json ---
 echo -e "${YELLOW}[2/2] Configuring Claude Code hooks ...${NC}"
 
-# The hooks config to merge
-HOOKS_JSON='{
-  "Stop": [
-    {
-      "hooks": [
-        {
-          "type": "command",
-          "command": "[ -z \"$CLAUDE_NONINTERACTIVE\" ] && setsid wscript.exe '\''C:\\Temp\\claude-launcher.vbs'\'' '\''C:\\Temp\\claude-stop-hook.ps1'\'' \"${CLAUDE_SESSION:-Claude}\" </dev/null >/dev/null 2>&1 &"
-        }
-      ]
-    }
-  ],
-  "UserPromptSubmit": [
-    {
-      "hooks": [
-        {
-          "type": "command",
-          "command": "setsid wscript.exe '\''C:\\Temp\\claude-launcher.vbs'\'' '\''C:\\Temp\\claude-dismiss.ps1'\'' \"${CLAUDE_SESSION:-Claude}\" </dev/null >/dev/null 2>&1 &"
-        }
-      ]
-    }
-  ],
-  "SessionEnd": [
-    {
-      "hooks": [
-        {
-          "type": "command",
-          "command": "setsid wscript.exe '\''C:\\Temp\\claude-launcher.vbs'\'' '\''C:\\Temp\\claude-dismiss.ps1'\'' \"${CLAUDE_SESSION:-Claude}\" </dev/null >/dev/null 2>&1 &"
-        }
-      ]
-    }
-  ],
-  "Notification": [
-    {
-      "matcher": "elicitation_dialog",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "[ -z \"$CLAUDE_NONINTERACTIVE\" ] && setsid wscript.exe '\''C:\\Temp\\claude-launcher.vbs'\'' '\''C:\\Temp\\claude-stop-hook.ps1'\'' \"${CLAUDE_SESSION:-Claude}\" </dev/null >/dev/null 2>&1 &"
-        }
-      ]
-    }
-  ],
-  "PermissionRequest": [
-    {
-      "hooks": [
-        {
-          "type": "command",
-          "command": "[ -z \"$CLAUDE_NONINTERACTIVE\" ] && setsid wscript.exe '\''C:\\Temp\\claude-launcher.vbs'\'' '\''C:\\Temp\\claude-stop-hook.ps1'\'' \"${CLAUDE_SESSION:-Claude}\" </dev/null >/dev/null 2>&1 &"
-        }
-      ]
-    }
-  ],
-  "PostToolUse": [
-    {
-      "matcher": "AskUserQuestion",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "setsid wscript.exe '\''C:\\Temp\\claude-launcher.vbs'\'' '\''C:\\Temp\\claude-dismiss.ps1'\'' \"${CLAUDE_SESSION:-Claude}\" </dev/null >/dev/null 2>&1 &"
-        }
-      ]
-    }
-  ]
-}'
+HOOKS_FILE="$SCRIPT_DIR/hooks.json"
 
 mkdir -p "$(dirname "$SETTINGS_FILE")"
 
 if [ -f "$SETTINGS_FILE" ]; then
     # Merge: overwrite only the "hooks" key, keep everything else
-    EXISTING=$(cat "$SETTINGS_FILE")
-    MERGED=$(echo "$EXISTING" | jq --argjson hooks "$HOOKS_JSON" '.hooks = $hooks')
-    echo "$MERGED" | jq . > "$SETTINGS_FILE"
+    jq --slurpfile hooks "$HOOKS_FILE" '.hooks = $hooks[0]' "$SETTINGS_FILE" > "$SETTINGS_FILE.tmp"
+    mv "$SETTINGS_FILE.tmp" "$SETTINGS_FILE"
     echo "  Merged hooks into existing settings.json."
 else
     # Create new settings.json with just hooks
-    echo '{}' | jq --argjson hooks "$HOOKS_JSON" '{hooks: $hooks}' > "$SETTINGS_FILE"
+    jq -n --slurpfile hooks "$HOOKS_FILE" '{hooks: $hooks[0]}' > "$SETTINGS_FILE"
     echo "  Created new settings.json with hooks."
 fi
 
