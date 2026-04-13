@@ -3,6 +3,23 @@ param([string]$SessionName = "unknown")
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
+# Custom form that never steals focus from the active window
+Add-Type -ReferencedAssemblies System.Windows.Forms, System.Drawing -TypeDefinition @"
+using System.Windows.Forms;
+public class NoActivateForm : Form {
+    protected override bool ShowWithoutActivation { get { return true; } }
+    protected override CreateParams CreateParams {
+        get {
+            const int WS_EX_NOACTIVATE = 0x08000000;
+            const int WS_EX_TOPMOST = 0x00000008;
+            CreateParams cp = base.CreateParams;
+            cp.ExStyle |= WS_EX_NOACTIVATE | WS_EX_TOPMOST;
+            return cp;
+        }
+    }
+}
+"@
+
 $pidDir = "C:\Temp"
 $pidFile = "$pidDir\claude-notify-$SessionName.pid"
 
@@ -18,9 +35,8 @@ foreach ($f in $existingPids) {
     }
 }
 
-$form = New-Object System.Windows.Forms.Form
+$form = New-Object NoActivateForm
 $form.Text = "Claude Code"
-$form.TopMost = $true
 $form.FormBorderStyle = 'None'
 $form.StartPosition = 'Manual'
 
@@ -109,4 +125,4 @@ $form.Add_FormClosed({
     Remove-Item $pidFile -Force -ErrorAction SilentlyContinue
 })
 
-$form.ShowDialog() | Out-Null
+[System.Windows.Forms.Application]::Run($form)
